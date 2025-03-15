@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Publik</title>
+</head>
+<body>
+  <h1>Dashboard Publik</h1>
+  <button onclick="loadPublicUsers()">Lihat Data Pengguna</button>
+  <ul id="userList"></ul>
+
+  <script>
+    function loadPublicUsers() {
+      fetch('https://dashboard-backend.onrender.com/public/users')
+        .then(res => res.json())
+        .then(data => {
+          const ul = document.getElementById('userList');
+          ul.innerHTML = "";
+          data.forEach(user => {
+            const li = document.createElement('li');
+            li.textContent = `${user.name} - ${user.role}`;
+            ul.appendChild(li);
+          });
+        });
+    }
+  </script>
+</body>
+  </html>
