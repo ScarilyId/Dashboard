@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    .container { max-width: 800px; margin: 0 auto; }
+    input, button, select { margin: 5px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Admin Dashboard</h1>
+    <!-- Form Login -->
+    <div id="loginSection">
+      <h2>Login Admin</h2>
+      <input type="text" id="username" placeholder="Username">
+      <input type="password" id="password" placeholder="Password">
+      <button onclick="login()">Login</button>
+    </div>
+
+    <!-- Panel Admin (terlihat setelah login) -->
+    <div id="adminPanel" style="display:none;">
+      <h2>Selamat datang, Admin!</h2>
+      <button onclick="loadStats()">Lihat Statistik</button>
+      <pre id="statsDisplay"></pre>
+
+      <h3>Kelola Pengguna</h3>
+      <button onclick="loadUsers()">Lihat Semua Pengguna</button>
+      <ul id="userList"></ul>
+
+      <h3>Tambah Pengguna</h3>
+      <input type="text" id="newName" placeholder="Nama">
+      <input type="text" id="newUsername" placeholder="Username">
+      <input type="password" id="newPassword" placeholder="Password">
+      <select id="newRole">
+        <option value="admin">Admin</option>
+        <option value="user">User</option>
+      </select>
+      <button onclick="addUser()">Tambah Pengguna</button>
+
+      <h3>Export Data</h3>
+      <button onclick="exportData()">Export ke CSV</button>
+
+      <h3>Laporan</h3>
+      <button onclick="loadReport()">Lihat Laporan</button>
+      <pre id="reportDisplay"></pre>
+
+      <h3>Kalender</h3>
+      <button onclick="loadCalendar()">Lihat Kalender</button>
+      <ul id="calendarDisplay"></ul>
+
+      <h3>Chat / Live Support</h3>
+      <button onclick="loadChat()">Lihat Pesan Chat</button>
+      <ul id="chatDisplay"></ul>
+
+      <h3>Pembayaran</h3>
+      <button onclick="loadPayments()">Lihat Pembayaran</button>
+      <ul id="paymentsDisplay"></ul>
+
+      <h3>Social Media Feed</h3>
+      <button onclick="loadSocial()">Lihat Feed Sosial Media</button>
+      <ul id="socialDisplay"></ul>
+    </div>
+  </div>
+
+  <script>
+    let token = "";
+
+    function login() {
+      fetch('https://dashboard-backend.onrender.com/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: document.getElementById('username').value,
+          password: document.getElementById('password').value
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.token) {
+          token = data.token;
+          document.getElementById('loginSection').style.display = 'none';
+          document.getElementById('adminPanel').style.display = 'block';
+          alert("Login berhasil!");
+        } else {
+          alert("Login gagal!");
+        }
+      });
+    }
+
+    function loadStats() {
+      fetch('https://dashboard-backend.onrender.com/stats', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('statsDisplay').innerText = JSON.stringify(data, null, 2);
+      });
+    }
+
+    function loadUsers() {
+      fetch('https://dashboard-backend.onrender.com/users', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const ul = document.getElementById('userList');
+        ul.innerHTML = "";
+        data.forEach(user => {
+          const li = document.createElement('li');
+          li.textContent = `${user.id}. ${user.name} (${user.username}) - ${user.role}`;
+          ul.appendChild(li);
+        });
+      });
+    }
+
+    function addUser() {
+      const newUser = {
+        name: document.getElementById('newName').value,
+        username: document.getElementById('newUsername').value,
+        password: document.getElementById('newPassword').value,
+        role: document.getElementById('newRole').value
+      };
+      fetch('https://dashboard-backend.onrender.com/users', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token 
+        },
+        body: JSON.stringify(newUser)
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        loadUsers();
+      });
+    }
+
+    function exportData() {
+      window.open('https://dashboard-backend.onrender.com/users/export', '_blank');
+    }
+
+    function loadReport() {
+      fetch('https://dashboard-backend.onrender.com/reports', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('reportDisplay').innerText = JSON.stringify(data, null, 2);
+      });
+    }
+
+    function loadCalendar() {
+      fetch('https://dashboard-backend.onrender.com/calendar', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const ul = document.getElementById('calendarDisplay');
+        ul.innerHTML = "";
+        data.forEach(event => {
+          const li = document.createElement('li');
+          li.textContent = `${event.title} on ${event.date}`;
+          ul.appendChild(li);
+        });
+      });
+    }
+
+    function loadChat() {
+      fetch('https://dashboard-backend.onrender.com/chat', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const ul = document.getElementById('chatDisplay');
+        ul.innerHTML = "";
+        data.forEach(msg => {
+          const li = document.createElement('li');
+          li.textContent = `${msg.sender}: ${msg.message}`;
+          ul.appendChild(li);
+        });
+      });
+    }
+
+    function loadPayments() {
+      fetch('https://dashboard-backend.onrender.com/payments', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const ul = document.getElementById('paymentsDisplay');
+        ul.innerHTML = "";
+        data.forEach(pay => {
+          const li = document.createElement('li');
+          li.textContent = `Payment ${pay.id} - ${pay.user}: ${pay.amount} (${pay.status})`;
+          ul.appendChild(li);
+        });
+      });
+    }
+
+    function loadSocial() {
+      fetch('https://dashboard-backend.onrender.com/social')
+      .then(res => res.json())
+      .then(data => {
+        const ul = document.getElementById('socialDisplay');
+        ul.innerHTML = "";
+        data.forEach(post => {
+          const li = document.createElement('li');
+          li.textContent = `[${post.platform}] ${post.content} (${post.date})`;
+          ul.appendChild(li);
+        });
+      });
+    }
+  </script>
+</body>
+        </html>
